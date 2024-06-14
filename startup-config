@@ -1,0 +1,416 @@
+Using 10107 out of 33554432 bytes
+!
+! Last configuration change at 23:26:35 CET Fri Jun 14 2024 by admin
+! NVRAM config last updated at 23:26:37 CET Fri Jun 14 2024 by admin
+!
+version 17.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service call-home
+platform qfp utilization monitor load 80
+platform punt-keepalive disable-kernel-core
+platform hardware throughput crypto 250000
+!
+hostname rtr-c1111
+!
+boot-start-marker
+boot system flash packages.conf
+boot-end-marker
+!
+!
+aaa new-model
+!
+!
+aaa authentication login default local
+aaa authorization exec default local 
+!
+!
+aaa session-id common
+clock timezone CET 1 0
+clock summer-time CET recurring last Sun Mar 2:00 last Sun Oct 2:00
+!
+!
+!
+!
+!
+!
+!
+ip name-server 192.168.93.220
+ip domain name megabob.local
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+vtp mode transparent
+vtp version 1
+!
+multilink bundle-name authenticated
+!
+!
+password encryption aes
+!
+!
+!
+crypto pki trustpoint SLA-TrustPoint
+ enrollment pkcs12
+ revocation-check crl
+!
+!
+crypto pki certificate chain SLA-TrustPoint
+ certificate ca 01 nvram:CiscoLicensi#1CA.cer
+!
+!
+no license feature hseck9
+license udi pid C1111-8P sn FCZ2432907P
+license accept end user agreement
+license boot level appxk9
+license boot level securityk9
+memory free low-watermark processor 66007
+!
+diagnostic bootup level minimal
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+et-analytics
+!
+!
+enable secret 9 $9$0000IRc-dsJGirewg4JDj9At0RhSreK8Xhc
+!
+username admin privilege 15 password 7 09424B1D1A0A1913053E012724322D3764
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+vlan internal allocation policy ascending
+!
+vlan 2
+ name BOB-LAN
+!
+vlan 100
+ name vDMZ
+!
+track 1 ip sla 1 reachability
+!
+track 2 ip sla 2 reachability
+!
+!
+class-map type inspect match-all BOB_LAN-WAN_OVH
+ match access-group name BOB_LAN-WAN_OVH_acl
+class-map type inspect match-all WAN_OVH-BOB_LAN
+ match access-group name WAN_OVH-BOB_LAN_acl
+class-map type inspect match-all BOB_LAN-VDMZ
+ match access-group name BOB_LAN-VDMZ_acl
+class-map type inspect match-all VDMZ-BOB_LAN
+ match access-group name VDMZ-BOB_LAN_acl
+class-map type inspect match-all VDMZ-WAN_OVH
+ match access-group name VDMZ-WAN_OVH_acl
+class-map type inspect match-all WAN_OVH-VDMZ
+ match access-group name WAN_OVH-VDMZ_acl
+!
+policy-map type inspect VDMZ-BOB_LAN-POLICY
+ class type inspect VDMZ-BOB_LAN
+  pass
+ class class-default
+  drop log
+policy-map type inspect VDMZ-WAN_OVH-POLICY
+ class type inspect VDMZ-WAN_OVH
+  pass
+ class class-default
+  drop log
+policy-map type inspect WAN_OVH-VDMZ-POLICY
+ class type inspect WAN_OVH-VDMZ
+  pass
+ class class-default
+  drop log
+policy-map type inspect BOB_LAN-VDMZ-POLICY
+ class type inspect BOB_LAN-VDMZ
+  pass
+ class class-default
+  drop log
+policy-map type inspect WAN_OVH-BOB_LAN-POLICY
+ class type inspect WAN_OVH-BOB_LAN
+  pass
+ class class-default
+  drop log
+policy-map type inspect BOB_LAN-WAN_OVH-POLICY
+ class type inspect BOB_LAN-WAN_OVH
+  pass
+ class class-default
+  drop log
+!
+!
+zone security BOB_LAN
+zone security vDMZ
+zone security WAN_OVH
+zone-pair security BOB_LAN-VDMZ source BOB_LAN destination vDMZ
+ service-policy type inspect BOB_LAN-VDMZ-POLICY
+zone-pair security BOB_LAN-WAN_OVH source BOB_LAN destination WAN_OVH
+ service-policy type inspect BOB_LAN-WAN_OVH-POLICY
+zone-pair security VDMZ-BOB_LAN source vDMZ destination BOB_LAN
+ service-policy type inspect VDMZ-BOB_LAN-POLICY
+zone-pair security VDMZ-WAN_OVH source vDMZ destination WAN_OVH
+ service-policy type inspect VDMZ-WAN_OVH-POLICY
+zone-pair security WAN_OVH-BOB_LAN source WAN_OVH destination BOB_LAN
+ service-policy type inspect WAN_OVH-BOB_LAN-POLICY
+zone-pair security WAN_OVH-VDMZ source WAN_OVH destination vDMZ
+ service-policy type inspect WAN_OVH-VDMZ-POLICY
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface GigabitEthernet0/0/0
+ description WAN FREE
+ no ip dhcp client request dns-nameserver
+ ip address dhcp
+ ip nat outside
+ zone-member security WAN_OVH
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ description WAN OVH
+ no ip address
+ ip mtu 1492
+ ip nat outside
+ ip tcp adjust-mss 1452
+ negotiation auto
+ pppoe enable group global
+ pppoe-client dial-pool-number 1
+ spanning-tree portfast
+!
+interface GigabitEthernet0/1/0
+ description sw-cisco01
+ switchport trunk native vlan 2
+ switchport trunk allowed vlan 2,100
+ switchport mode trunk
+!
+interface GigabitEthernet0/1/1
+!
+interface GigabitEthernet0/1/2
+!
+interface GigabitEthernet0/1/3
+!
+interface GigabitEthernet0/1/4
+!
+interface GigabitEthernet0/1/5
+!
+interface GigabitEthernet0/1/6
+!
+interface GigabitEthernet0/1/7
+!
+interface Vlan1
+ no ip address
+!
+interface Vlan2
+ ip address 192.168.93.1 255.255.255.0
+ ip nat inside
+ zone-member security BOB_LAN
+!
+interface Vlan100
+ ip address 192.168.8.1 255.255.255.0
+ ip nat inside
+ zone-member security vDMZ
+ ip policy route-map Only-WAN-OVH
+!
+interface Dialer1
+ mtu 1492
+ ip address negotiated
+ no ip redirects
+ ip nat outside
+ zone-member security WAN_OVH
+ encapsulation ppp
+ ip tcp adjust-mss 1452
+ dialer pool 1
+ dialer idle-timeout 0
+ dialer persistent
+ dialer-group 1
+ ppp mtu adaptive
+ ppp authentication chap callin
+ ppp chap hostname netconanRemoved2
+ ppp chap password 7 09424B1D1A0A1913053E012724322D3766
+ ppp ipcp dns request
+!
+no ip http server
+ip http authentication local
+ip http secure-server
+ip forward-protocol nd
+ip nat inside source static tcp 192.168.8.12 25 93.133.244.31 587 extendable
+ip nat inside source route-map WAN-FREE interface GigabitEthernet0/0/0 overload
+ip nat inside source route-map WAN-OVH interface Dialer1 overload
+ip route 0.0.0.0 0.0.0.0 Dialer1
+ip route 0.0.0.0 0.0.0.0 dhcp
+ip ssh time-out 60
+!
+!
+ip access-list extended BOB_LAN-VDMZ_acl
+ 10 permit ip any any
+ip access-list extended BOB_LAN-WAN_OVH_acl
+ 10 permit ip any any
+ip access-list extended VDMZ-BOB_LAN_acl
+ 10 permit ip any any
+ip access-list extended VDMZ-WAN_OVH_acl
+ 10 permit ip any any
+ip access-list extended WAN_OVH-BOB_LAN_acl
+ 10 permit ip any any
+ip access-list extended WAN_OVH-VDMZ_acl
+ 10 permit ip any any
+!
+ip sla 1
+ icmp-echo 99.18.105.254 source-interface GigabitEthernet0/0/0
+ip sla schedule 1 life forever start-time now
+ip sla 2
+ icmp-echo 148.97.4.19 source-interface Dialer1
+ip sla schedule 2 life forever start-time now
+ip access-list standard 2
+ 5 deny 192.168.8.12
+ 10 permit 192.168.93.0 0.0.0.255
+ 20 permit 192.168.8.0 0.0.0.255
+ip access-list standard 3
+ 10 permit 192.168.93.0 0.0.0.255
+ 20 permit 192.168.8.0 0.0.0.255
+ip access-list extended 100
+ 10 deny ip host 192.168.8.12 192.168.93.0 0.0.255.255
+ 20 permit ip host 192.168.8.12 any
+ip access-list extended 197
+ 10 permit ip any any
+dialer-list 1 protocol ip permit
+!
+route-map track-primary-if permit 1 
+ match ip address 2 197
+ set interface Dialer1
+!
+route-map track-secondary-if permit 1 
+ match ip address 2 197
+ set interface GigabitEthernet0/0/0
+!
+route-map Return-SMTP permit 10 
+ match ip address 101
+ set ip next-hop 192.168.93.1
+!
+route-map WAN-OVH permit 10 
+ match ip address 3
+ match interface Dialer1
+!
+route-map Only-WAN-OVH permit 10 
+ match ip address 100
+ set interface Dialer1
+!
+route-map WAN-FREE permit 10 
+ match ip address 2
+ match interface GigabitEthernet0/0/0
+!
+!
+!
+!
+!
+control-plane host
+ management-interface Vlan2 allow https ssh 
+!
+!
+control-plane
+!
+!
+line con 0
+ timeout login response 300
+ privilege level 15
+ transport input none
+ stopbits 1
+line vty 0 4
+ exec-timeout 30 0
+ privilege level 15
+ length 0
+ history size 200
+ transport input ssh
+line vty 5 14
+ exec-timeout 30 0
+ privilege level 15
+ length 0
+ history size 200
+ transport input ssh
+!
+call-home
+ ! If contact email address in call-home is configured as sch-smart-licensing@cisco.com
+ ! the email address configured in Cisco Smart License Portal will be used as contact email address to send SCH notifications.
+ contact-email-addr sch-smart-licensing@cisco.com
+ profile "CiscoTAC-1"
+  active
+  destination transport-method http
+ntp server 0.fr.pool.ntp.org minpoll 10
+!
+!
+!
+!
+!
+event manager applet CLEAR-NAT-STAT
+ event timer watchdog time 600
+ action 10 cli command "enable"
+ action 20 cli command "clear ip nat statistics"
+event manager applet WAN_FREE_UP
+ event track 1 state up
+ action 10 cli command "enable"
+ action 20 cli command "conf t"
+ action 30 cli command "ip route 0.0.0.0 0.0.0.0 dhcp"
+ action 40 cli command "ip nat inside source route-map WAN-FREE interface GigabitEthernet0/0/0 overload"
+ action 50 cli command "end"
+ action 60 cli command "clear ip nat translation *"
+event manager applet WAN_FREE_DOWN
+ event track 1 state down
+ action 10 cli command "enable"
+ action 20 cli command "conf t"
+ action 30 cli command "no ip route 0.0.0.0 0.0.0.0 dhcp"
+ action 40 cli command "no ip nat inside source route-map WAN-FREE interface GigabitEthernet0/0/0 overload"
+ action 50 cli command "end"
+ action 60 cli command "clear ip nat translation *"
+event manager applet WAN_OVH_DOWN
+ event track 2 state down
+ action 10 cli command "enable"
+ action 20 cli command "conf t"
+ action 30 cli command "no ip route 0.0.0.0 0.0.0.0 Dialer1"
+ action 40 cli command "no ip nat inside source route-map WAN-OVH interface Dialer1 overload"
+ action 50 cli command "int Gi0/0/0"
+ action 60 cli command "no ip nat outside"
+ action 70 cli command "end"
+ action 80 cli command "clear ip nat translation *"
+event manager applet WAN_OVH_UP
+ event track 2 state up
+ action 10 cli command "enable"
+ action 20 cli command "conf t"
+ action 30 cli command "ip route 0.0.0.0 0.0.0.0 Dialer1"
+ action 40 cli command "ip nat inside source route-map WAN-OVH interface Dialer1 overload"
+ action 50 cli command "int Gi0/0/0"
+ action 60 cli command "ip nat outside"
+ action 70 cli command "end"
+ action 80 cli command "clear ip nat translation *"
+!
+end
