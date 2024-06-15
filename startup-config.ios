@@ -306,18 +306,6 @@ ip access-list extended 197
  10 permit ip any any
 dialer-list 1 protocol ip permit
 !
-route-map track-primary-if permit 1 
- match ip address 2 197
- set interface Dialer1
-!
-route-map track-secondary-if permit 1 
- match ip address 2 197
- set interface GigabitEthernet0/0/0
-!
-route-map Return-SMTP permit 10 
- match ip address 101
- set ip next-hop 192.168.93.1
-!
 route-map WAN-OVH permit 10 
  match ip address 3
  match interface Dialer1
